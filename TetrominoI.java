@@ -38,4 +38,8 @@ public class TetrominoI extends Tetromino {
         }
 
     }
+    @Override
+    public Tetromino cloneAt(int x, int y) {
+        return new TetrominoI(x, y);
+    }
 }

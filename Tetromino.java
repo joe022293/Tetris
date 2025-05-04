@@ -58,7 +58,7 @@ public abstract class Tetromino {
         startX = x;
         startY = y;
     }
-    
+    public abstract Tetromino cloneAt(int x, int y);
     // public void setColor(Color c){
     //     for (Cell cell : cells) {
     //         cell.setColor(c);

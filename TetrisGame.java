@@ -12,7 +12,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private Tetromino currentBlock;
     private TetrisApp app;
     private Queue<Tetromino> nextQueue = new LinkedList<>();
-    
+    private int xgrid = 150;
+    private Tetromino heldBlock = null;  // 儲存格
+    private boolean canHold = true;      // 是否可以使用 Hold    
 
     public TetrisGame(TetrisApp app) {
         this.app = app;
@@ -54,6 +56,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     
         // 獲取下一個方塊
         currentBlock = nextQueue.poll();
+        canHold = true;
     
         // 如果當前方塊的位置有衝突，遊戲結束
         for (Cell c : currentBlock.getCells()) {
@@ -64,6 +67,22 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 return;
             }
         }
+    }
+
+    private void swapHold() {
+        if (!canHold) return; // 一次只能 Hold 一次直到下個方塊生成
+    
+        Tetromino temp = heldBlock;
+        heldBlock = currentBlock.cloneAt(4, 0);
+        // heldBlock.resetPosition();  // 將 heldBlock 重置到原始位置 (0,4)
+        
+        if (temp == null) {
+            spawnNewBlock(); // 沒有備份過的方塊，從 queue 補新的
+        } else {
+            currentBlock = temp;
+            currentBlock.cloneAt(4, 0);
+        }
+        canHold = false;
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -87,39 +106,53 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 Cell cell = board.getCell(x, y);
                 if (cell != null) {
                     g.setColor(cell.getColor());
-                    g.fillRect(x * 30, y * 30, 30, 30);
+                    g.fillRect(xgrid + x * 30, y * 30, 30, 30);
                     g.setColor(Color.DARK_GRAY);
-                    g.drawRect(x * 30, y * 30, 30, 30);
+                    g.drawRect(xgrid + x * 30, y * 30, 30, 30);
                 }
             }
         }
         for (Cell c : currentBlock.getCells()) {
             g.setColor(c.getColor());
-            g.fillRect(c.getX() * 30, c.getY() * 30, 30, 30);
+            g.fillRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
             g.setColor(Color.DARK_GRAY);
-            g.drawRect(c.getX() * 30, c.getY() * 30, 30, 30);
+            g.drawRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
         }
         g.setColor(Color.darkGray);
         for (int x = 0; x <= 10; x++) {
-            g.drawLine(x * 30, getHeight() - 20*30, x * 30, getHeight());
+            g.drawLine(xgrid + x * 30, getHeight() - 20*30, xgrid + x * 30, getHeight());
         }
         for (int y = 2; y <= getHeight()/20; y++) {
-            g.drawLine(0, y * 30, 300, y * 30);
+            g.drawLine(xgrid + 0, y * 30, xgrid + 300, y * 30);
         }
         // 顯示未來方塊
         g.setColor(Color.WHITE);
-        g.drawString("Next:", 330, 20);
+        g.drawString("Next:", xgrid + 330, 20);
         int index = 0;
         for (Tetromino t : nextQueue) {
             for (Cell c : t.getCells()) {
                 g.setColor(c.getColor());
-                int drawX = 330 + (c.getX() - 4) * 20;
-                int drawY = 40 + index * 80 + c.getY() * 20;
+                int drawX = xgrid + 330 + (c.getX() - 4) * 20;
+                int drawY = 60 + index * 80 + c.getY() * 20;
                 g.fillRect(drawX, drawY, 20, 20);
                 g.setColor(Color.DARK_GRAY);
                 g.drawRect(drawX, drawY, 20, 20);
             }
             index++;
+        }
+        // 顯示 Hold 區塊（左上角）
+        g.setColor(Color.WHITE);
+        g.drawString("Hold:", xgrid - 80, 20);  // 字的位置
+
+        if (heldBlock != null) {
+            for (Cell c : heldBlock.getCells()) {
+                g.setColor(c.getColor());
+                int drawX_h = xgrid - 100 + (c.getX() - 4) * 20;  // 水平偏移（以原本 x=4 為中心）
+                int drawY_h = 50 + c.getY() * 20;        // 垂直偏移
+                g.fillRect(drawX_h, drawY_h, 20, 20);
+                g.setColor(Color.DARK_GRAY);
+                g.drawRect(drawX_h, drawY_h, 20, 20);
+            }
         }
     }
 
@@ -154,6 +187,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     currentBlock.moveDown();
                 }
                 actionPerformed(null);
+                break;
+            case KeyEvent.VK_C : 
+                swapHold();
                 break;
         }
         repaint();
