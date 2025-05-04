@@ -5,6 +5,8 @@ import java.awt.Color;
 public abstract class Tetromino {
     protected Cell[] cells = new Cell[4];
     protected Color color;
+    protected int startX;
+    protected int startY;
     public abstract void rotate(); // 每種形狀旋轉邏輯不同
     int s = 0;
     public void moveDown() {
@@ -52,7 +54,10 @@ public abstract class Tetromino {
             }
         }
     }
-    
+    public void setPosition(int x,int y){
+        startX = x;
+        startY = y;
+    }
     
     // public void setColor(Color c){
     //     for (Cell cell : cells) {

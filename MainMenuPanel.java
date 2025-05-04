@@ -11,10 +11,6 @@ public class MainMenuPanel extends JPanel {
         title.setFont(new Font("Arial", Font.BOLD, 36));
         title.setAlignmentX(Component.CENTER_ALIGNMENT);
         
-        // 設置 Tetris 遊戲區域
-        TetrisGame gamePanel = new TetrisGame(app);  // 假設 TetrisGame 需要傳入 TetrisApp 物件
-        gamePanel.setPreferredSize(new Dimension(320, 700));  // 設定 TetrisGame 的大小
-        
         // 設置開始按鈕
         JButton startButton = new JButton("Start");
         startButton.setFont(new Font("Arial", Font.PLAIN, 24));

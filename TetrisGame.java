@@ -1,5 +1,7 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.util.LinkedList;
+import java.util.Queue;
 import java.util.Random;
 import javax.swing.*;
 
@@ -9,11 +11,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private Board board;
     private Tetromino currentBlock;
     private TetrisApp app;
+    private Queue<Tetromino> nextQueue = new LinkedList<>();
     
 
     public TetrisGame(TetrisApp app) {
         this.app = app;
-        setPreferredSize(new Dimension(320, 700)); // 10 cols x 30 px, 20 rows x 30 px
+        setPreferredSize(new Dimension(600, 700)); // 10 cols x 30 px, 20 rows x 30 px
         setBackground(Color.BLACK);
         setFocusable(true);
         addKeyListener(this);
@@ -25,34 +28,34 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         timer.start();
     }
 
+    private Tetromino createBlock(int x, int y, int type) {
+        switch (type) {
+            case 0: return new TetrominoI(x, y);
+            case 1: return new TetrominoO(x, y);
+            case 2: return new TetrominoT(x, y);
+            case 3: return new TetrominoL(x, y);
+            case 4: return new TetrominoJ(x, y);
+            case 5: return new TetrominoS(x, y);
+            case 6: return new TetrominoZ(x, y);
+        }
+        return null;
+    }
+
     private void spawnNewBlock() {
         Random rand = new Random();
         int x = 4, y = 0;
-        int type = rand.nextInt(7); // 0 到 6
-
-        switch (type) {
-            case 0:
-                currentBlock = new TetrominoI(x, y);
-                break;
-            case 1:
-                currentBlock = new TetrominoO(x, y);
-                break;
-            case 2:
-                currentBlock = new TetrominoT(x, y);
-                break;
-            case 3:
-                currentBlock = new TetrominoL(x, y);
-                break;
-            case 4:
-                currentBlock = new TetrominoJ(x, y);
-                break;
-            case 5:
-                currentBlock = new TetrominoS(x, y);
-                break;
-            case 6:
-                currentBlock = new TetrominoZ(x, y);
-                break;
+    
+        // 如果 nextQueue 少於 5 個方塊，填充新方塊
+        while (nextQueue.size() < 5) {
+            int type = rand.nextInt(7); // 0 到 6
+            Tetromino newBlock = createBlock(x, y, type);
+            nextQueue.add(newBlock);
         }
+    
+        // 獲取下一個方塊
+        currentBlock = nextQueue.poll();
+    
+        // 如果當前方塊的位置有衝突，遊戲結束
         for (Cell c : currentBlock.getCells()) {
             if (board.isOccupied(c.getX(), c.getY())) {
                 timer.stop();
@@ -102,6 +105,21 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
         for (int y = 2; y <= getHeight()/20; y++) {
             g.drawLine(0, y * 30, 300, y * 30);
+        }
+        // 顯示未來方塊
+        g.setColor(Color.WHITE);
+        g.drawString("Next:", 330, 20);
+        int index = 0;
+        for (Tetromino t : nextQueue) {
+            for (Cell c : t.getCells()) {
+                g.setColor(c.getColor());
+                int drawX = 330 + (c.getX() - 4) * 20;
+                int drawY = 40 + index * 80 + c.getY() * 20;
+                g.fillRect(drawX, drawY, 20, 20);
+                g.setColor(Color.DARK_GRAY);
+                g.drawRect(drawX, drawY, 20, 20);
+            }
+            index++;
         }
     }
 

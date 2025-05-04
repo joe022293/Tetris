@@ -8,7 +8,7 @@ public class TetrisApp {
     public TetrisApp() {
         frame = new JFrame("Tetris Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(320, 700);
+        frame.setSize(600, 700);
         frame.setLocationRelativeTo(null);
         frame.setResizable(false);
 

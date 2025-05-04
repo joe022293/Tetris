@@ -4,10 +4,11 @@ public class TetrominoI extends Tetromino {
 
     public TetrominoI(int startX, int startY) {
         color = Color.CYAN;
-        cells[0] = new Cell(startX, startY, color);
-        cells[1] = new Cell(startX, startY + 1, color);
-        cells[2] = new Cell(startX, startY + 2, color);
-        cells[3] = new Cell(startX, startY + 3, color);
+        cells[0] = new Cell(startX - 1, startY, color);
+        cells[1] = new Cell(startX, startY, color);
+        cells[2] = new Cell(startX + 1, startY, color);
+        cells[3] = new Cell(startX + 2, startY, color);
+        s=1;
     }
 
     public void rotate() {
