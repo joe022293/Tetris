@@ -8,9 +8,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private Timer timer;
     private Board board;
     private Tetromino currentBlock;
+    private TetrisApp app;
+    
 
-    public TetrisGame() {
-        setPreferredSize(new Dimension(300, 600)); // 10 cols x 30 px, 20 rows x 30 px
+    public TetrisGame(TetrisApp app) {
+        this.app = app;
+        setPreferredSize(new Dimension(320, 700)); // 10 cols x 30 px, 20 rows x 30 px
         setBackground(Color.BLACK);
         setFocusable(true);
         addKeyListener(this);
@@ -50,6 +53,14 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 currentBlock = new TetrominoZ(x, y);
                 break;
         }
+        for (Cell c : currentBlock.getCells()) {
+            if (board.isOccupied(c.getX(), c.getY())) {
+                timer.stop();
+                JOptionPane.showMessageDialog(this, "Game Over!");
+                app.backToMenu();  // 回主畫面
+                return;
+            }
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -68,7 +79,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         super.paintComponent(g);
 
         // 畫目前方塊
-        for (int y = 0; y < 20; y++) {
+        for (int y = 0; y < 22; y++) {
             for (int x = 0; x < 10; x++) {
                 Cell cell = board.getCell(x, y);
                 if (cell != null) {
@@ -85,7 +96,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             g.setColor(Color.DARK_GRAY);
             g.drawRect(c.getX() * 30, c.getY() * 30, 30, 30);
         }
-        // 畫已固定的格子（略）
+        g.setColor(Color.darkGray);
+        for (int x = 0; x <= 10; x++) {
+            g.drawLine(x * 30, getHeight() - 20*30, x * 30, getHeight());
+        }
+        for (int y = 2; y <= getHeight()/20; y++) {
+            g.drawLine(0, y * 30, 300, y * 30);
+        }
     }
 
     // ==== 鍵盤控制 ====
@@ -129,16 +146,14 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     public void keyReleased(KeyEvent e) {
         // 可以留空，或寫上你要的邏輯
     }
+    // public static void main(String[] args) {
+    //     JFrame frame = new JFrame("Tetris Game");
+    //     TetrisGame game = new TetrisGame();
 
-
-    public static void main(String[] args) {
-        JFrame frame = new JFrame("Tetris Game");
-        TetrisGame game = new TetrisGame();
-
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.getContentPane().add(game);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-    }
+    //     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    //     frame.getContentPane().add(game);
+    //     frame.pack();
+    //     frame.setLocationRelativeTo(null);
+    //     frame.setVisible(true);
+    // }
 }

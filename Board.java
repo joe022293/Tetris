@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Board {
-    private final int rows = 20;
+    private final int rows = 22;
     private final int cols = 10;
     private Cell[][] grid = new Cell[rows][cols];
 
