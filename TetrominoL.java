@@ -2,7 +2,7 @@ import java.awt.Color;
 
 public class TetrominoL extends Tetromino {
     public TetrominoL(int startX, int startY) {
-        color = Color.CYAN;
+        color = Color.ORANGE;
         cells[0] = new Cell(startX, startY, color);
         cells[1] = new Cell(startX, startY + 1, color);
         cells[2] = new Cell(startX, startY + 2, color);

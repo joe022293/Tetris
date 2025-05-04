@@ -1,6 +1,7 @@
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.Random;
+import javax.swing.*;
 
 public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
@@ -22,8 +23,33 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     private void spawnNewBlock() {
-        currentBlock = new TetrominoI(4, 0); // 簡單起見先用 I 形，後續可隨機
-        
+        Random rand = new Random();
+        int x = 4, y = 0;
+        int type = rand.nextInt(7); // 0 到 6
+
+        switch (type) {
+            case 0:
+                currentBlock = new TetrominoI(x, y);
+                break;
+            case 1:
+                currentBlock = new TetrominoO(x, y);
+                break;
+            case 2:
+                currentBlock = new TetrominoT(x, y);
+                break;
+            case 3:
+                currentBlock = new TetrominoL(x, y);
+                break;
+            case 4:
+                currentBlock = new TetrominoJ(x, y);
+                break;
+            case 5:
+                currentBlock = new TetrominoS(x, y);
+                break;
+            case 6:
+                currentBlock = new TetrominoZ(x, y);
+                break;
+        }
     }
 
     public void actionPerformed(ActionEvent e) {
@@ -31,6 +57,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             currentBlock.moveDown();
         } else {
             board.addBlock(currentBlock);  // 把現在的方塊固定到 board 上
+            board.clearFullRows();
             spawnNewBlock();                // 產生新的方塊
         }
         repaint();
@@ -95,6 +122,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 break;
         }
         repaint();
+    }
+    public void keyTyped(KeyEvent e) {
+        // 可以留空
+    }
+    public void keyReleased(KeyEvent e) {
+        // 可以留空，或寫上你要的邏輯
     }
 
 

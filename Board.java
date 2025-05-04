@@ -1,3 +1,6 @@
+import java.util.ArrayList;
+import java.util.List;
+
 public class Board {
     private final int rows = 20;
     private final int cols = 10;
@@ -46,7 +49,47 @@ public class Board {
         }
     }
     public void clearFullRows() {
-        // 消除滿行的邏輯
+        List<Integer> fullRows = getFullRows();
+        for (int row : fullRows) {
+            removeRow(row);
+            shiftDown(row);
+        }
+    }
+    private List<Integer> getFullRows() {
+        List<Integer> fullRows = new ArrayList<>();
+        for (int y = 0; y < rows; y++) {
+            boolean full = true;
+            for (int x = 0; x < cols; x++) {
+                if (grid[y][x] == null) {
+                    full = false;
+                    break;
+                }
+            }
+            if (full) {
+                fullRows.add(y);
+            }
+        }
+        return fullRows;
+    }
+    private void removeRow(int row) {
+        for (int x = 0; x < cols; x++) {
+            grid[row][x] = null;
+        }
+    }
+    private void shiftDown(int fromRow) {
+        for (int y = fromRow; y > 0; y--) {
+            for (int x = 0; x < cols; x++) {
+                grid[y][x] = grid[y - 1][x];
+                if (grid[y][x] != null) {
+                    grid[y][x].setY(y); // 同步 Cell 的 Y 座標
+                }
+            }
+        }
+    
+        // 最上面一行清空
+        for (int x = 0; x < cols; x++) {
+            grid[0][x] = null;
+        }
     }
     public Cell getCell(int x, int y) {
         return grid[y][x];
