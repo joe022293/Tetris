@@ -1,5 +1,7 @@
 
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public abstract class Tetromino {
@@ -57,6 +59,27 @@ public abstract class Tetromino {
     public void setPosition(int x,int y){
         startX = x;
         startY = y;
+    }
+    public void movedxdy(int dx, int dy) {
+        
+        for (Cell c : cells) {
+            
+            c.setX(c.getX() + dx);
+            // System.out.println(c.getY());
+            c.setY(c.getY() + dy);
+            // System.out.println(dy);
+        }
+    }
+    public List<Cell> copyCells() {
+    List<Cell> copy = new ArrayList<>();
+    for (Cell c : cells) {
+        copy.add(new Cell(c.getX(), c.getY(), c.getColor())); // 複製每個 Cell
+    }
+    return copy;
+    }
+
+    public void setCells(List<Cell> newCells) {
+        cells = newCells.toArray(new Cell[0]);
     }
     public abstract Tetromino cloneAt(int x, int y);
     // public void setColor(Color c){

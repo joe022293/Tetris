@@ -1,10 +1,10 @@
 import java.util.ArrayList;
 import java.util.List;
-
 public class Board {
-    private final int rows = 22;
+    public final int rows = 24;
     private final int cols = 10;
     private Cell[][] grid = new Cell[rows][cols];
+    public int Score;
 
     public boolean isOccupied(int x, int y) {
         return grid[y][x] != null;
@@ -55,6 +55,45 @@ public class Board {
             shiftDown(row);
         }
     }
+
+    public boolean tryRotate(Tetromino block) {
+        // 先備份原本的位置
+        List<Cell> originalCells = block.copyCells();
+    
+        // 嘗試旋轉
+        block.rotate();
+    
+        // 模擬旋轉後的位置
+        List<Cell> rotatedCells = block.copyCells();
+    
+        // 旋轉後，嘗試用不同 offset 找合法位置
+        int[][] offsets = {
+            {0, 0}, {-1, 0}, {1, 0}, {-2, 0}, {2, 0}, {0, 1}, {0, 2}, {1, 1}, {-1, 1}, {1, 2}, {-1, 2}, {0, -1}, {0, -2}, {0, -3}
+        };
+    
+        for (int[] offset : offsets) {
+            if (canPlace(rotatedCells, offset[0], offset[1])) {
+                block.movedxdy(offset[0], offset[1]);  // 成功移動
+                return true;
+            }
+        }
+    
+        // 沒找到合法位置，就還原旋轉
+        block.setCells(originalCells);
+        return false;
+    }
+    
+    // 檢查 offset 後是否能合法放置
+    private boolean canPlace(List<Cell> cells, int offsetX, int offsetY) {
+        for (Cell c : cells) {
+            int x = c.getX() + offsetX;
+            int y = c.getY() + offsetY;
+    
+            if (x < 0 || x >= cols || y < 0 || y >= rows) return false;
+            if (grid[y][x] != null) return false;
+        }
+        return true;
+    }
     private List<Integer> getFullRows() {
         List<Integer> fullRows = new ArrayList<>();
         for (int y = 0; y < rows; y++) {
@@ -68,6 +107,20 @@ public class Board {
             if (full) {
                 fullRows.add(y);
             }
+        }
+        switch (fullRows.size()){
+            case 1:
+                Score = Score + 100;
+                break;
+            case 2:
+                Score = Score + 300;
+                break;
+            case 3:
+                Score = Score + 500;
+                break;
+            case 4:
+                Score = Score + 800;
+                break;
         }
         return fullRows;
     }

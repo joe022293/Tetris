@@ -3,10 +3,11 @@ import java.awt.Color;
 public class TetrominoJ extends Tetromino {
     public TetrominoJ(int startX, int startY) {
         color = Color.BLUE;
-        cells[0] = new Cell(startX, startY, color);
-        cells[1] = new Cell(startX, startY + 1, color);
-        cells[2] = new Cell(startX, startY + 2, color);
-        cells[3] = new Cell(startX - 1, startY + 2, color);
+        cells[0] = new Cell(startX + 1, startY, color);
+        cells[1] = new Cell(startX, startY, color);
+        cells[2] = new Cell(startX - 1, startY, color);
+        cells[3] = new Cell(startX - 1, startY - 1, color);
+        s=1;
     }
     
     
