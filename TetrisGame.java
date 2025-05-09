@@ -107,26 +107,27 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void actionPerformed(ActionEvent e) {
+        
         if (board.canMoveDown(currentBlock)) {
             currentBlock.moveDown();
             lockStartTime = -1;
-        } else {
-            if (!isTouchingGround) {
-                isTouchingGround = true;
-                lockStartTime = System.currentTimeMillis();
-            }else{
-                long now = System.currentTimeMillis();
-                if (now - lockStartTime >= lockDelay || isSpace == true) {
-                    isSpace = false;
-                    lockDelay = 500;
-                    board.addBlock(currentBlock);
-                    board.clearFullRows();
-                    spawnNewBlock();
-                    isTouchingGround = false;
-                    lockStartTime = -1;
-                }
-            }           // 產生新的方塊
         }
+        if (!board.canMoveDown(currentBlock) && !isTouchingGround) {
+            isTouchingGround = true;
+            lockStartTime = System.currentTimeMillis();
+        }
+        if(isTouchingGround){
+            long now = System.currentTimeMillis();
+            if (now - lockStartTime >= lockDelay || isSpace == true) {
+                isSpace = false;
+                lockDelay = 500;
+                board.addBlock(currentBlock);
+                board.clearFullRows();
+                spawnNewBlock();
+                isTouchingGround = false;
+                lockStartTime = -1;
+            }
+        }           // 產生新的方塊
         repaint();
     }
     @Override
@@ -139,6 +140,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         drawNextQueue(g);
         drawHoldBlock(g);
         drawScore(g);
+        drawGhost(g);
     }
 
     private void drawBoard(Graphics g) {
@@ -209,6 +211,18 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         g.setFont(new Font("Arial", Font.BOLD, 35));
         g.drawString("Score:" + board.Score, xgrid + 80, 30);
     }
+    private void drawGhost(Graphics g) {
+        TetrominoGhost ghostBlock = new TetrominoGhost(currentBlock.copyCells()); // 假設copyCells返回目前方塊的Cell
+        while (board.canMoveDown(ghostBlock)) {
+            ghostBlock.moveDown();  // 不停地向下移動，直到碰到地板或其他方塊
+        }
+        for (Cell c : ghostBlock.getCells()) {
+            g.setColor(c.getColor());
+            g.fillRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
+            g.setColor(Color.DARK_GRAY);
+            g.drawRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
+        }
+    }
 
     // ==== 鍵盤控制 ====
     
@@ -229,13 +243,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 if (board.canMoveDown(currentBlock)){
                     currentBlock.moveDown();
                 }
-                // while (board.canMoveDown(currentBlock)) { 
-                //     currentBlock.moveDown();
-                // }
                 break;
             case KeyEvent.VK_UP : 
                 r = board.tryRotate(currentBlock);
-                // System.out.println(r);
                 currentBlock.adjustPositionAfterRotate();
                 if(r)
                 {
@@ -256,6 +266,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
         repaint();
     }
+
     public void keyTyped(KeyEvent e) {
         // 可以留空
     }
