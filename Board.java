@@ -185,7 +185,11 @@ public class Board {
         if (isOccupiedSafe(x + 1, y + 1)) occupiedCorners++;
 
         if(occupiedCorners >= 3 || didUseWallKick())
+        {
+            if ((x <= 0 || x >= 9) && !didUseWallKick()) 
+                return false;
             return true;
+        }
         else
             return false;
     }

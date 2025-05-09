@@ -30,8 +30,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int moveInterval = 80;
     private int leftHoldFrames = 0;
     private int rightHoldFrames = 0;
-    private int movegap = 2;
-    public boolean lastIsMove = false;
+    private int movegap = 1;
+    private  boolean lastIsTurn = false;
     private TSpinFader tSpinFader = new TSpinFader();
     private AllClear allClear = new AllClear();
     private double shakeOffsetY = 0;
@@ -150,7 +150,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 lockDelay = 500;
                 board.addBlock(currentBlock);
                 triggerShake();
-                if (board.isTSpin(currentBlock)) {
+                if (board.isTSpin(currentBlock) && lastIsTurn) {
                     tSpinFader.triggerFade();
                 }
                 board.clearFullRows();
@@ -188,7 +188,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     }
 
     public void triggerShake() {
-        final int totalFrames = 10;
+        final int totalFrames = 5;
         final double maxOffset = 4.0;
         final int[] frame = {0};
     
@@ -320,9 +320,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 currentBlock.adjustPositionAfterRotate();
                 if(r)
                 {
-                    lockStartTime = System.currentTimeMillis() + 500;
+                    lockStartTime = System.currentTimeMillis() + 300;
                     r = false;
-                    lastIsMove = true;
+                    lastIsTurn = true;
                 }
                 break;
             case KeyEvent.VK_SPACE : 
@@ -330,6 +330,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     currentBlock.moveDown();
                     isSpace = true;
                 }
+                lastIsTurn = false;
                 actionPerformed(null);
                 break;
             case KeyEvent.VK_C : 
@@ -355,7 +356,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private void moveDown() {
         if (board.canMoveDown(currentBlock)) {
             currentBlock.moveDown();
-            lastIsMove = false;
+            lastIsTurn = false;
             repaint();
         }
     }
