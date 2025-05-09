@@ -23,7 +23,18 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private boolean isTouchingGround = false;
     private boolean isSpace = false;
     private Queue<Integer> blockBag = new LinkedList<>();
-
+    private boolean isLeftPressed = false;
+    private boolean isRightPressed = false;
+    private boolean isDownPressed = false;
+    private Timer moveTimer;
+    private int moveInterval = 80;
+    private int leftHoldFrames = 0;
+    private int rightHoldFrames = 0;
+    private int movegap = 2;
+    public boolean lastIsMove = false;
+    private TSpinFader tSpinFader = new TSpinFader();
+    private AllClear allClear = new AllClear();
+    private double shakeOffsetY = 0;
     public TetrisGame(TetrisApp app) {
         this.app = app;
         setPreferredSize(new Dimension(600, 700)); // 10 cols x 30 px, 20 rows x 30 px
@@ -33,9 +44,24 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
         board = new Board();
         spawnNewBlock();
-
+        
         timer = new Timer(500, this); // 每 500ms 下落一次
         timer.start();
+        moveTimer = new Timer(moveInterval, e -> {
+            if (isLeftPressed) {
+                if(leftHoldFrames > movegap)
+                    moveLeft();
+                else
+                    leftHoldFrames++;
+            } else if (isRightPressed) {
+                if(rightHoldFrames > movegap)
+                    moveRight();
+                else
+                    rightHoldFrames++;
+            } else if (isDownPressed) {
+                moveDown();
+            }
+        });
     }
 
     private Tetromino createBlock(int x, int y, int type) {
@@ -68,6 +94,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         // 獲取下一個方塊
         currentBlock = nextQueue.poll();
         canHold = true;
+        board.setUseWallKick(false);
     
         // 如果當前方塊的位置有衝突，遊戲結束
         for (Cell c : currentBlock.getCells()) {
@@ -122,7 +149,14 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 isSpace = false;
                 lockDelay = 500;
                 board.addBlock(currentBlock);
+                triggerShake();
+                if (board.isTSpin(currentBlock)) {
+                    tSpinFader.triggerFade();
+                }
                 board.clearFullRows();
+                if(board.allClear){
+                    allClear.triggerFade();
+                }
                 spawnNewBlock();
                 isTouchingGround = false;
                 lockStartTime = -1;
@@ -133,7 +167,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
-
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.translate(0, shakeOffsetY);
         drawBoard(g);
         drawCurrentBlock(g);
         drawGridLines(g);
@@ -141,8 +176,39 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         drawHoldBlock(g);
         drawScore(g);
         drawGhost(g);
+        tSpinFader.draw(g2d,xgrid - 120, 150);
+        allClear.draw(g2d,xgrid - 130, 180);
+        if (tSpinFader.isFading()) {
+            repaint();  // 這樣會讓淡出動畫持續
+        }
+        if (allClear.isFading()) {
+            repaint();  // 這樣會讓淡出動畫持續
+        }
+        
     }
 
+    public void triggerShake() {
+        final int totalFrames = 10;
+        final double maxOffset = 4.0;
+        final int[] frame = {0};
+    
+        Timer timer = new Timer(16, null); // 約 60fps
+        timer.addActionListener(e -> {
+            if (frame[0] < totalFrames) {
+                double progress = (frame[0] < totalFrames / 2) ?
+                        frame[0] / (double)(totalFrames / 2) :
+                        (totalFrames - frame[0]) / (double)(totalFrames / 2);
+                shakeOffsetY = maxOffset * progress;
+                frame[0]++;
+                repaint();
+            } else {
+                shakeOffsetY = 0;
+                ((Timer) e.getSource()).stop();
+                repaint();
+            }
+        });
+        timer.start();
+    }
     private void drawBoard(Graphics g) {
         for (int y = 0; y < board.rows; y++) {
             for (int x = 0; x < 10; x++) {
@@ -230,18 +296,23 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         boolean r = false;
         switch (e.getKeyCode()) {
             case KeyEvent.VK_LEFT : 
-                if(board.canMoveLeft(currentBlock)){
-                    currentBlock.moveLeft();
+                isLeftPressed = true;
+                if (!moveTimer.isRunning()) {
+                    moveTimer.start(); // 啟動定時器
+                    moveLeft();
                 }
                 break;
             case KeyEvent.VK_RIGHT : 
-                if(board.canMoveRight(currentBlock)){
-                    currentBlock.moveRight();
+                isRightPressed = true;
+                if (!moveTimer.isRunning()) {
+                    moveTimer.start(); // 啟動定時器
+                    moveRight();
                 }
                 break;
             case KeyEvent.VK_DOWN : 
-                if (board.canMoveDown(currentBlock)){
-                    currentBlock.moveDown();
+                isDownPressed = true;
+                if (!moveTimer.isRunning()) {
+                    moveTimer.start(); // 啟動定時器
                 }
                 break;
             case KeyEvent.VK_UP : 
@@ -251,6 +322,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 {
                     lockStartTime = System.currentTimeMillis() + 500;
                     r = false;
+                    lastIsMove = true;
                 }
                 break;
             case KeyEvent.VK_SPACE : 
@@ -266,11 +338,48 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }
         repaint();
     }
+    private void moveLeft() {
+        if (board.canMoveLeft(currentBlock)) {
+            currentBlock.moveLeft();
+            repaint();
+        }
+    }
+    
+    private void moveRight() {
+        if (board.canMoveRight(currentBlock)) {
+            currentBlock.moveRight();
+            repaint();
+        }
+    }
+    
+    private void moveDown() {
+        if (board.canMoveDown(currentBlock)) {
+            currentBlock.moveDown();
+            lastIsMove = false;
+            repaint();
+        }
+    }
 
     public void keyTyped(KeyEvent e) {
         // 可以留空
     }
     public void keyReleased(KeyEvent e) {
-        // 可以留空，或寫上你要的邏輯
+        switch (e.getKeyCode()) {
+            case KeyEvent.VK_LEFT: 
+                leftHoldFrames = 0;
+                isLeftPressed = false;
+                break;
+            case KeyEvent.VK_RIGHT: 
+                rightHoldFrames = 0;
+                isRightPressed = false;
+                break;
+            case KeyEvent.VK_DOWN:
+                isDownPressed = false;
+                break;
+        }
+        // 如果所有按鍵都釋放，停止定時器
+        if (!isLeftPressed && !isRightPressed && !isDownPressed) {
+            moveTimer.stop();
+        }
     }
 }

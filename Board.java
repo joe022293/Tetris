@@ -5,7 +5,16 @@ public class Board {
     private final int cols = 10;
     private Cell[][] grid = new Cell[rows][cols];
     public int Score;
+    public boolean allClear = false;
 
+    private boolean UsedWallKick = false;
+
+    public boolean didUseWallKick() {
+        return UsedWallKick;
+    }
+    public void setUseWallKick(boolean b) {
+        UsedWallKick = b;
+    }
     public boolean isOccupied(int x, int y) {
         return grid[y][x] != null;
     }
@@ -54,6 +63,17 @@ public class Board {
             removeRow(row);
             shiftDown(row);
         }
+        allClear = checkAllClear();
+    }
+    public boolean checkAllClear() {
+        for (int y = 0; y < rows; y++) {
+            for (int x = 0; x < cols; x++) {
+                if (grid[y][x] != null) {  // 如果有任何方塊，則不是 All Clear
+                    return false;
+                }
+            }
+        }
+        return true;  // 所有方格都為 null，表示達成 All Clear
     }
 
     public boolean tryRotate(Tetromino block) {
@@ -73,6 +93,8 @@ public class Board {
     
         for (int[] offset : offsets) {
             if (canPlace(rotatedCells, offset[0], offset[1])) {
+                if((offset[0] == 1 && offset[1] == 1) || (offset[0] == -1 && offset[1] == 1) || (offset[0] == 1 && offset[1] == 2) || (offset[0] == -1 && offset[1] == 2))
+                    UsedWallKick = true;
                 block.movedxdy(offset[0], offset[1]);  // 成功移動
                 return true;
             }
@@ -147,6 +169,31 @@ public class Board {
     public Cell getCell(int x, int y) {
         return grid[y][x];
     }
+    public boolean isTSpin(Tetromino block) {
+        if (!(block instanceof TetrominoT)) return false;
+        
+    
+        Cell center = block.getCells()[3];// 中心座標，根據你的 TetrominoT 實作而定
+        int x = center.getX();
+        int y = center.getY();
+    
+        // 檢查四個角落
+        int occupiedCorners = 0;
+        if (isOccupiedSafe(x - 1, y - 1)) occupiedCorners++;
+        if (isOccupiedSafe(x + 1, y - 1)) occupiedCorners++;
+        if (isOccupiedSafe(x - 1, y + 1)) occupiedCorners++;
+        if (isOccupiedSafe(x + 1, y + 1)) occupiedCorners++;
+
+        if(occupiedCorners >= 3 || didUseWallKick())
+            return true;
+        else
+            return false;
+    }
+    
+    private boolean isOccupiedSafe(int x, int y) {
+        return x < 0 || x >= cols || y < 0 || y >= rows || grid[y][x] != null;
+    }
+    
 
     // 還可以加碰撞檢查、邊界限制等
 }
