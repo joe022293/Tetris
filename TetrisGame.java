@@ -52,6 +52,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         timer = new Timer(500, this); // 每 500ms 下落一次
         timer.start();
         soundManager.playBGM("C:/github/Tetris/music/Mozart - Rondo Alla Turca.wav");
+        soundManager.loadSFX("put", "C:/github/Tetris/music/194648__sdlx__small-tin-tap-3.wav");
+        soundManager.setComboVolume(100);
+        soundManager.setBGMVolume(90);
         moveTimer = new Timer(moveInterval, e -> {
             if (isLeftPressed) {
                 if(leftHoldFrames > movegap)
@@ -152,6 +155,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         if(isTouchingGround){
             long now = System.currentTimeMillis();
             if (now - lockStartTime >= lockDelay || isSpace == true) {
+                soundManager.playSFX("put");
                 isSpace = false;
                 lockDelay = 500;
                 board.addBlock(currentBlock);
@@ -161,11 +165,12 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 }
                 if(board.clearFullRows())
                 {
-                    
                     comboCount = comboCount + 1;
-                    System.out.println(comboCount);
-                    combo.setString("Combo " + comboCount + " !");
-                    combo.triggerFade();
+                    soundManager.playCombo(comboCount);
+                    if(comboCount > 1){
+                        combo.setString("Combo " + comboCount + " !");
+                        combo.triggerFade();
+                    }
                 }
                 else
                     comboCount = 0;
@@ -175,6 +180,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 spawnNewBlock();
                 isTouchingGround = false;
                 lockStartTime = -1;
+                
+                
             }
         }           // 產生新的方塊
         repaint();

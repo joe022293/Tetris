@@ -5,13 +5,34 @@ import javax.sound.sampled.*;
 public class SoundManager {
     private Clip bgmClip;
     private HashMap<String, Clip> soundEffects = new HashMap<>();
+    private Piano comboSoundPlayer = new Piano();
+    // private int comboVolume = 50;
+    private float BGMVolume;
+
+    public void playCombo(int Combo){
+        comboSoundPlayer.playPiano(Combo);
+    }
+    public void setComboVolume(int v){
+        comboSoundPlayer.setPianoVolume(v);
+    }
+    public int getComboVolume(){
+        return comboSoundPlayer.getPianoVolume();
+    }
 
     public void playBGM(String filePath) {
-        stopBGM();
+        // stopBGM();
         bgmClip = loadClip(filePath);
         if (bgmClip != null) {
             bgmClip.loop(Clip.LOOP_CONTINUOUSLY);
         }
+    }
+    public void setBGMVolume(int volume) {
+        BGMVolume = (float)(volume * 0.01);
+        // volume: 0.0（靜音）到 1.0（最大聲）
+        FloatControl gainControl = (FloatControl) bgmClip.getControl(FloatControl.Type.MASTER_GAIN);
+        float range = gainControl.getMaximum() - gainControl.getMinimum();
+        float gain = (range * BGMVolume) + gainControl.getMinimum();
+        gainControl.setValue(gain);  // 設定音量
     }
 
     public void stopBGM() {
