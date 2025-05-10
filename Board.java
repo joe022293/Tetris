@@ -57,13 +57,16 @@ public class Board {
             grid[c.getY()][c.getX()] = c;
         }
     }
-    public void clearFullRows() {
+    public boolean clearFullRows() {
         List<Integer> fullRows = getFullRows();
         for (int row : fullRows) {
             removeRow(row);
             shiftDown(row);
         }
         allClear = checkAllClear();
+        if(fullRows.size()>0)
+            return true;
+        return false;
     }
     public boolean checkAllClear() {
         for (int y = 0; y < rows; y++) {

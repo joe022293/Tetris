@@ -32,9 +32,13 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int rightHoldFrames = 0;
     private int movegap = 1;
     private  boolean lastIsTurn = false;
-    private TSpinFader tSpinFader = new TSpinFader();
-    private AllClear allClear = new AllClear();
+    private StringFader tSpinFader = new StringFader("T-SPIN!");
+    private StringFader allClear = new StringFader("ALL Clear!");
+    // private String combostr = "";  
+    private StringFader combo = new StringFader("");
     private double shakeOffsetY = 0;
+    SoundManager soundManager = new SoundManager();
+    private int comboCount = 0; // 初始為 -1 表示尚未開始 Combo
     public TetrisGame(TetrisApp app) {
         this.app = app;
         setPreferredSize(new Dimension(600, 700)); // 10 cols x 30 px, 20 rows x 30 px
@@ -47,6 +51,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         
         timer = new Timer(500, this); // 每 500ms 下落一次
         timer.start();
+        soundManager.playBGM("C:/github/Tetris/music/Mozart - Rondo Alla Turca.wav");
         moveTimer = new Timer(moveInterval, e -> {
             if (isLeftPressed) {
                 if(leftHoldFrames > movegap)
@@ -102,6 +107,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 timer.stop();
                 JOptionPane.showMessageDialog(this, "Game Over!");
                 app.backToMenu();  // 回主畫面
+                soundManager.stopBGM();
                 return;
             }
         }
@@ -153,7 +159,16 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 if (board.isTSpin(currentBlock) && lastIsTurn) {
                     tSpinFader.triggerFade();
                 }
-                board.clearFullRows();
+                if(board.clearFullRows())
+                {
+                    
+                    comboCount = comboCount + 1;
+                    System.out.println(comboCount);
+                    combo.setString("Combo " + comboCount + " !");
+                    combo.triggerFade();
+                }
+                else
+                    comboCount = 0;
                 if(board.allClear){
                     allClear.triggerFade();
                 }
@@ -178,14 +193,14 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         drawGhost(g);
         tSpinFader.draw(g2d,xgrid - 120, 150);
         allClear.draw(g2d,xgrid - 130, 180);
-        if (tSpinFader.isFading()) {
+        combo.draw(g2d, xgrid - 140, 170);
+        if (tSpinFader.isFading()) 
             repaint();  // 這樣會讓淡出動畫持續
-        }
-        if (allClear.isFading()) {
+        if (allClear.isFading()) 
             repaint();  // 這樣會讓淡出動畫持續
-        }
-        
-    }
+        if(combo.isFading())
+            repaint();
+    }   
 
     public void triggerShake() {
         final int totalFrames = 5;
