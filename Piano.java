@@ -3,7 +3,7 @@ import javax.sound.midi.*;
 public class Piano {
     private Synthesizer synthesizer;
     private MidiChannel channel;
-    private int setPianoVolume;
+    private int setPianoVolume = 50;
     public Piano() {
         try {
             synthesizer = MidiSystem.getSynthesizer();

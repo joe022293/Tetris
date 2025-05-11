@@ -9,7 +9,13 @@ public class MainMenuPanel extends JPanel {
         // 設置標題
         JLabel title = new JLabel("TETRIS", SwingConstants.CENTER);
         title.setFont(new Font("Arial", Font.BOLD, 36));
-        title.setAlignmentX(Component.CENTER_ALIGNMENT);
+        // title.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // 設置開始按鈕
+        JButton settingButton = new JButton("Setting");
+        settingButton.setFont(new Font("Arial", Font.PLAIN, 24));
+        settingButton.setAlignmentX(Component.CENTER_ALIGNMENT);  // 使按鈕水平居中
+        settingButton.addActionListener(e -> app.showSettings());
         
         // 設置開始按鈕
         JButton startButton = new JButton("Start");
@@ -24,7 +30,9 @@ public class MainMenuPanel extends JPanel {
         add(title, gbc);
         
         // 設置開始按鈕在第二行
-        gbc.gridy = 1;
+        gbc.gridy = 2;
         add(startButton, gbc);
+        gbc.gridy = 1;
+        add(settingButton, gbc);
     }
 }

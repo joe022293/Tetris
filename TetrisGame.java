@@ -37,9 +37,10 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     // private String combostr = "";  
     private StringFader combo = new StringFader("");
     private double shakeOffsetY = 0;
-    SoundManager soundManager = new SoundManager();
+    SoundManager soundManager;
     private int comboCount = 0; // 初始為 -1 表示尚未開始 Combo
-    public TetrisGame(TetrisApp app) {
+    public TetrisGame(TetrisApp app, SoundManager s) {
+        soundManager = s;
         this.app = app;
         setPreferredSize(new Dimension(600, 700)); // 10 cols x 30 px, 20 rows x 30 px
         setBackground(Color.BLACK);
@@ -51,10 +52,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         
         timer = new Timer(500, this); // 每 500ms 下落一次
         timer.start();
-        soundManager.playBGM("C:/github/Tetris/music/Mozart - Rondo Alla Turca.wav");
-        soundManager.loadSFX("put", "C:/github/Tetris/music/194648__sdlx__small-tin-tap-3.wav");
-        soundManager.setComboVolume(100);
-        soundManager.setBGMVolume(90);
+        soundManager.playBGM();
+        // soundManager.setComboVolume(100);
+        // soundManager.setBGMVolume(90);
         moveTimer = new Timer(moveInterval, e -> {
             if (isLeftPressed) {
                 if(leftHoldFrames > movegap)
@@ -71,7 +71,6 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             }
         });
     }
-
     private Tetromino createBlock(int x, int y, int type) {
         switch (type) {
             case 0: return new TetrominoI(x, y);
@@ -156,6 +155,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             long now = System.currentTimeMillis();
             if (now - lockStartTime >= lockDelay || isSpace == true) {
                 soundManager.playSFX("put");
+                // System.out.println("9999999999999999999");
                 isSpace = false;
                 lockDelay = 500;
                 board.addBlock(currentBlock);
