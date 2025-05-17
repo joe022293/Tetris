@@ -12,7 +12,6 @@ public class TimeAttackGame extends TetrisGame {
 
     public TimeAttackGame(TetrisApp app, SoundManager sm) {
         super(app, sm, false); // 不自動倒數
-        startTime = Instant.now();
         startTimer();
         startCountdown(); // 子類建構子最後呼叫
     }
@@ -73,6 +72,9 @@ public class TimeAttackGame extends TetrisGame {
     @Override
     public void resumeAllTimers() {
         super.resumeAllTimers();
-        if (gameTimer != null && !gameTimer.isRunning()) gameTimer.start();
+        if (gameTimer != null && !gameTimer.isRunning()){
+            gameTimer.start();
+            startTime = Instant.now();
+        } 
     }
 }
