@@ -46,13 +46,23 @@ public class StringFader {
     }
 
     // 根據透明度繪製 T-Spin
-    public void draw(Graphics2D g, int x, int y) {
+    public void draw(Graphics2D g, int x, int y, Color c) {
+        if (!fading) return;
+
+        Composite old = g.getComposite();
+        g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
+        g.setColor(c);
+        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.drawString(str, x, y);
+        g.setComposite(old);
+    }
+    public void draw(Graphics2D g, int x, int y, Color c, int size) {
         if (!fading) return;
 
         Composite old = g.getComposite();
         g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, alpha));
         g.setColor(Color.CYAN);
-        g.setFont(new Font("Arial", Font.BOLD, 24));
+        g.setFont(new Font("Arial", Font.BOLD, size));
         g.drawString(str, x, y);
         g.setComposite(old);
     }

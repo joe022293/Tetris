@@ -10,12 +10,12 @@ import javax.swing.*;
 
 public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
-    private Timer timer;
-    private Board board;
+    protected Timer timer;
+    protected Board board;
     private Tetromino currentBlock;
-    private TetrisApp app;
+    protected TetrisApp app;
     private Queue<Tetromino> nextQueue = new LinkedList<>();
-    private int xgrid = 150;
+    protected int xgrid = 150;
     private Tetromino heldBlock = null;  // 儲存格
     private boolean canHold = true;      // 是否可以使用 Hold    
     private long lockDelay = 500;
@@ -36,25 +36,28 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private StringFader allClear = new StringFader("ALL Clear!");
     // private String combostr = "";  
     private StringFader combo = new StringFader("");
+    private StringFader countdownString = new StringFader("");
+    private StringFader go = new StringFader("GO !");
     private double shakeOffsetY = 0;
     SoundManager soundManager;
     private int comboCount = 0; // 初始為 -1 表示尚未開始 Combo
-    public TetrisGame(TetrisApp app, SoundManager s) {
+    protected int clearLinesNum = 0;
+    private int countdown = 3;  // 倒數秒數
+    private Timer countdownTimer;
+    protected boolean isCountdown;
+    public TetrisGame(TetrisApp app, SoundManager s, boolean autoCountdown) {
         soundManager = s;
         this.app = app;
-        setPreferredSize(new Dimension(600, 700)); // 10 cols x 30 px, 20 rows x 30 px
+        setPreferredSize(new Dimension(600, 700));
         setBackground(Color.BLACK);
         setFocusable(true);
         addKeyListener(this);
 
         board = new Board();
         spawnNewBlock();
-        
-        timer = new Timer(500, this); // 每 500ms 下落一次
+        timer = new Timer(500, this);
         timer.start();
         soundManager.playBGM();
-        // soundManager.setComboVolume(100);
-        // soundManager.setBGMVolume(90);
         moveTimer = new Timer(moveInterval, e -> {
             if (isLeftPressed) {
                 if(leftHoldFrames > movegap)
@@ -70,6 +73,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 moveDown();
             }
         });
+        if (autoCountdown) {
+            startCountdown();
+        }
     }
     private Tetromino createBlock(int x, int y, int type) {
         switch (type) {
@@ -86,7 +92,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
     private void spawnNewBlock() {
         Random rand = new Random();
-        int x = 4, y = 2;
+        int x = 4, y = 3;
     
         // 如果 nextQueue 少於 5 個方塊，填充新方塊
         while (nextQueue.size() < 5) {
@@ -151,11 +157,11 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             isTouchingGround = true;
             lockStartTime = System.currentTimeMillis();
         }
+        clearLinesNum = 0;
         if(isTouchingGround){
             long now = System.currentTimeMillis();
             if (now - lockStartTime >= lockDelay || isSpace == true) {
                 soundManager.playSFX("put");
-                // System.out.println("9999999999999999999");
                 isSpace = false;
                 lockDelay = 500;
                 board.addBlock(currentBlock);
@@ -163,7 +169,8 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 if (board.isTSpin(currentBlock) && lastIsTurn) {
                     tSpinFader.triggerFade();
                 }
-                if(board.clearFullRows())
+                clearLinesNum = board.clearFullRows();
+                if(clearLinesNum>0)
                 {
                     comboCount = comboCount + 1;
                     soundManager.playCombo(comboCount);
@@ -173,7 +180,10 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     }
                 }
                 else
+                {
                     comboCount = 0;
+                }
+                
                 if(board.allClear){
                     allClear.triggerFade();
                 }
@@ -186,26 +196,64 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         }           // 產生新的方塊
         repaint();
     }
+    public void startCountdown() {
+        isCountdown = true;
+        pauseAllTimers();
+        countdown = 3;
+        countdownString.setString(Integer.toString(countdown));
+        countdownString.triggerFade();
+        countdownTimer = new Timer(1000, e -> {
+            countdown--;
+            if(countdown > 0) {
+                countdownString.setString(Integer.toString(countdown));
+                countdownString.triggerFade();
+                repaint();
+            }
+            if (countdown <= 0) {
+                countdownTimer.stop();
+                isCountdown = false;
+                go.triggerFade();
+                resumeAllTimers();
+                repaint();
+            }
+        });
+        countdownTimer.start();
+    }
+    public void pauseAllTimers() {
+        if (timer != null && timer.isRunning()) timer.stop();
+        if (moveTimer != null && moveTimer.isRunning()) moveTimer.stop();
+    }
+
+    public void resumeAllTimers() {
+        if (timer != null && !timer.isRunning()) timer.start();
+        // moveTimer 只在有按鍵時才啟動，不需要強制啟動
+    }
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2d = (Graphics2D) g;
         g2d.translate(0, shakeOffsetY);
-        drawBoard(g);
-        drawCurrentBlock(g);
+        drawBoard(g2d);
+        drawCurrentBlock(g2d);
         drawGridLines(g);
-        drawNextQueue(g);
-        drawHoldBlock(g);
+        drawNextQueue(g2d);
+        drawHoldBlock(g2d);
         drawScore(g);
         drawGhost(g);
-        tSpinFader.draw(g2d,xgrid - 120, 150);
-        allClear.draw(g2d,xgrid - 130, 180);
-        combo.draw(g2d, xgrid - 140, 170);
+        tSpinFader.draw(g2d,xgrid - 120, 150, new Color(128, 0, 128));
+        allClear.draw(g2d,xgrid - 130, 180, Color.CYAN);
+        combo.draw(g2d, xgrid - 140, 170, Color.CYAN);
+        countdownString.draw(g2d, xgrid + 120, 400, Color.CYAN, 150);
+        go.draw(g2d, xgrid-5, 400, Color.CYAN, 150);
         if (tSpinFader.isFading()) 
             repaint();  // 這樣會讓淡出動畫持續
         if (allClear.isFading()) 
             repaint();  // 這樣會讓淡出動畫持續
         if(combo.isFading())
+            repaint();
+        if(countdownString.isFading())
+            repaint();
+        if(go.isFading())
             repaint();
     }   
 
@@ -231,25 +279,114 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         });
         timer.start();
     }
-    private void drawBoard(Graphics g) {
+    private void drawBlock(Graphics2D g2d, int x, int y, int size, Color color) {
+        int innerOffset = size / 5; // 調整內縮大小
+        Color shadowBase = new Color(0, 0, 0, 50); // 半透明黑色
+        Color lightBase = color.brighter().brighter().brighter().brighter(); // 更亮的顏色用於高光
+        Color veryLightBase = lightBase.brighter();
+        Color borderColor = Color.BLACK;
+
+        // 繪製外層
+        g2d.setColor(color);
+        g2d.fillRect(x+1, y+1, size-2, size-2);
+
+        // 繪製外層陰影（右邊漸變）
+        GradientPaint rightShadow = new GradientPaint(
+                x + size - 5, y, new Color(0, 0, 0, 0),
+                x + size, y, shadowBase
+        );
+        g2d.setPaint(rightShadow);
+        g2d.fillRect(x + size - 5, y, 5, size);
+
+        // 繪製外層陰影（下邊漸變）
+        GradientPaint bottomShadow = new GradientPaint(
+                x, y + size - 5, new Color(0, 0, 0, 0),
+                x, y + size, shadowBase
+        );
+        g2d.setPaint(bottomShadow);
+        g2d.fillRect(x, y + size - 5, size, 5);
+
+        // 繪製外層高光（上邊漸變）
+        GradientPaint topHighlight = new GradientPaint(
+                x, y, veryLightBase,
+                x, y + 5, veryLightBase
+        );
+        g2d.setPaint(topHighlight);
+        g2d.fillRect(x, y, size, 5);
+
+        // 繪製外層高光（左邊漸變）
+        GradientPaint leftHighlight = new GradientPaint(
+                x, y, veryLightBase,
+                x + 5, y, veryLightBase
+        );
+        g2d.setPaint(leftHighlight);
+        g2d.fillRect(x, y, 5, size);
+
+        // 繪製內層
+        g2d.setColor(color.brighter());
+        g2d.fillRect(x + innerOffset, y + innerOffset, size - 2 * innerOffset, size - 2 * innerOffset);
+
+        // 繪製內層陰影（右邊漸變）
+        GradientPaint innerRightShadow = new GradientPaint(
+                x + innerOffset + (size - 2 * innerOffset) - 5, y + innerOffset, new Color(0, 0, 0, 0),
+                x + innerOffset + (size - 2 * innerOffset), y + innerOffset, shadowBase
+        );
+        g2d.setPaint(innerRightShadow);
+        g2d.fillRect(x + innerOffset + (size - 2 * innerOffset) - 5, y + innerOffset, 5, size - 2 * innerOffset);
+
+        // 繪製內層陰影（下邊漸變）
+        GradientPaint innerBottomShadow = new GradientPaint(
+                x + innerOffset, y + innerOffset + (size - 2 * innerOffset) - 5, new Color(0, 0, 0, 0),
+                x + innerOffset, y + innerOffset + (size - 2 * innerOffset), shadowBase
+        );
+        g2d.setPaint(innerBottomShadow);
+        g2d.fillRect(x + innerOffset, y + innerOffset + (size - 2 * innerOffset) - 5, size - 2 * innerOffset, 5);
+
+        // 繪製內層高光（上邊漸變）
+        GradientPaint innerTopHighlight = new GradientPaint(
+                x + innerOffset, y + innerOffset, veryLightBase,
+                x + innerOffset, y + innerOffset + 5, veryLightBase
+        );
+        g2d.setPaint(innerTopHighlight);
+        g2d.fillRect(x + innerOffset, y + innerOffset, size - 2 * innerOffset, 5);
+
+        // 繪製內層高光（左邊漸變）
+        GradientPaint innerLeftHighlight = new GradientPaint(
+                x + innerOffset, y + innerOffset, veryLightBase,
+                x + innerOffset + 5, y + innerOffset, veryLightBase
+        );
+        g2d.setPaint(innerLeftHighlight);
+        g2d.fillRect(x + innerOffset, y + innerOffset, 5, size - 2 * innerOffset);
+
+        // 繪製外層黑色邊框
+        g2d.setPaint(null); // 恢復單色繪製
+        g2d.setColor(borderColor);
+        g2d.drawRect(x, y, size - 1, size - 1);
+    }
+
+    private void drawBoard(Graphics2D g2d) {
         for (int y = 0; y < board.rows; y++) {
             for (int x = 0; x < 10; x++) {
                 Cell cell = board.getCell(x, y);
-                if (cell != null) {
-                    g.setColor(cell.getColor());
-                    g.fillRect(xgrid + x * 30, y * 30, 30, 30);
-                    g.setColor(Color.DARK_GRAY);
-                    g.drawRect(xgrid + x * 30, y * 30, 30, 30);
-                }
+                if (cell != null) 
+                    drawBlock(g2d,xgrid + x * 30, y * 30, 30,cell.getColor());
+                // if (cell != null) {
+                //     g.setColor(cell.getColor());
+                //     g.fillRect(xgrid + x * 30, y * 30, 30, 30);
+                //     g.setColor(Color.DARK_GRAY);
+                //     g.drawRect(xgrid + x * 30, y * 30, 30, 30);
+                // }
             }
         }
     }
-    private void drawCurrentBlock(Graphics g) {
+    
+    private void drawCurrentBlock(Graphics2D g2d) {
         for (Cell c : currentBlock.getCells()) {
-            g.setColor(c.getColor());
-            g.fillRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
-            g.setColor(Color.DARK_GRAY);
-            g.drawRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
+            drawBlock(g2d, xgrid + c.getX() * 30, c.getY() * 30,30,c.getColor());
+            // g.setColor(c.getColor());
+            // g.fillRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
+            // g.setColor(Color.DARK_GRAY);
+            // g.drawRect(xgrid + c.getX() * 30, c.getY() * 30, 30, 30);
         }
     }
     private void drawGridLines(Graphics g) {
@@ -261,36 +398,39 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             g.drawLine(xgrid, y * 30, xgrid + 300, y * 30);
         }
     }
-    private void drawNextQueue(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString("Next:", xgrid + 330, 20);
+    private void drawNextQueue(Graphics2D g2d) {
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 20));
+        g2d.drawString("Next:", xgrid + 330, 20);
         int index = 0;
         for (Tetromino t : nextQueue) {
             for (Cell c : t.getCells()) {
-                g.setColor(c.getColor());
+                
+                // g2d.setColor(c.getColor());
                 int drawX = xgrid + 350 + (c.getX() - 4) * 20;
                 int drawY = 60 + index * 80 + c.getY() * 20;
-                g.fillRect(drawX, drawY, 20, 20);
-                g.setColor(Color.DARK_GRAY);
-                g.drawRect(drawX, drawY, 20, 20);
+                drawBlock(g2d,drawX, drawY, 20,c.getColor());
+                // g.fillRect(drawX, drawY, 20, 20);
+                // g.setColor(Color.DARK_GRAY);
+                // g.drawRect(drawX, drawY, 20, 20);
             }
             index++;
         }
     }
-    private void drawHoldBlock(Graphics g) {
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 20));
-        g.drawString("Hold:", xgrid - 80, 20);
+    private void drawHoldBlock(Graphics2D g2d) {
+        g2d.setColor(Color.WHITE);
+        g2d.setFont(new Font("Arial", Font.BOLD, 20));
+        g2d.drawString("Hold:", xgrid - 80, 20);
     
         if (heldBlock != null) {
             for (Cell c : heldBlock.getCells()) {
-                g.setColor(c.getColor());
+                // g2d.setColor(c.getColor());
                 int drawX_h = xgrid - 100 + (c.getX() - 4) * 20;
                 int drawY_h = 50 + c.getY() * 20;
-                g.fillRect(drawX_h, drawY_h, 20, 20);
-                g.setColor(Color.DARK_GRAY);
-                g.drawRect(drawX_h, drawY_h, 20, 20);
+                drawBlock(g2d, drawX_h, drawY_h, 20,c.getColor());
+                // g.fillRect(drawX_h, drawY_h, 20, 20);
+                // g.setColor(Color.DARK_GRAY);
+                // g.drawRect(drawX_h, drawY_h, 20, 20);
             }
         }
     }
@@ -316,48 +456,50 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     
     public void keyPressed(KeyEvent e) {
         boolean r = false;
-        switch (e.getKeyCode()) {
-            case KeyEvent.VK_LEFT : 
-                isLeftPressed = true;
-                if (!moveTimer.isRunning()) {
-                    moveTimer.start(); // 啟動定時器
-                    moveLeft();
-                }
-                break;
-            case KeyEvent.VK_RIGHT : 
-                isRightPressed = true;
-                if (!moveTimer.isRunning()) {
-                    moveTimer.start(); // 啟動定時器
-                    moveRight();
-                }
-                break;
-            case KeyEvent.VK_DOWN : 
-                isDownPressed = true;
-                if (!moveTimer.isRunning()) {
-                    moveTimer.start(); // 啟動定時器
-                }
-                break;
-            case KeyEvent.VK_UP : 
-                r = board.tryRotate(currentBlock);
-                currentBlock.adjustPositionAfterRotate();
-                if(r)
-                {
-                    lockStartTime = System.currentTimeMillis() + 300;
-                    r = false;
-                    lastIsTurn = true;
-                }
-                break;
-            case KeyEvent.VK_SPACE : 
-                while (board.canMoveDown(currentBlock)) { 
-                    currentBlock.moveDown();
-                    isSpace = true;
-                }
-                lastIsTurn = false;
-                actionPerformed(null);
-                break;
-            case KeyEvent.VK_C : 
-                swapHold();
-                break;
+        if(isCountdown == false){
+            switch (e.getKeyCode()) {
+                case KeyEvent.VK_LEFT : 
+                    isLeftPressed = true;
+                    if (!moveTimer.isRunning()) {
+                        moveTimer.start(); // 啟動定時器
+                        moveLeft();
+                    }
+                    break;
+                case KeyEvent.VK_RIGHT : 
+                    isRightPressed = true;
+                    if (!moveTimer.isRunning()) {
+                        moveTimer.start(); // 啟動定時器
+                        moveRight();
+                    }
+                    break;
+                case KeyEvent.VK_DOWN : 
+                    isDownPressed = true;
+                    if (!moveTimer.isRunning()) {
+                        moveTimer.start(); // 啟動定時器
+                    }
+                    break;
+                case KeyEvent.VK_UP : 
+                    r = board.tryRotate(currentBlock);
+                    currentBlock.adjustPositionAfterRotate();
+                    if(r)
+                    {
+                        lockStartTime = System.currentTimeMillis() + 300;
+                        r = false;
+                        lastIsTurn = true;
+                    }
+                    break;
+                case KeyEvent.VK_SPACE : 
+                    while (board.canMoveDown(currentBlock)) { 
+                        currentBlock.moveDown();
+                        isSpace = true;
+                    }
+                    lastIsTurn = false;
+                    actionPerformed(null);
+                    break;
+                case KeyEvent.VK_C : 
+                    swapHold();
+                    break;
+            }
         }
         repaint();
     }

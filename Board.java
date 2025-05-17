@@ -1,7 +1,7 @@
 import java.util.ArrayList;
 import java.util.List;
 public class Board {
-    public final int rows = 24;
+    public final int rows = 25;
     private final int cols = 10;
     private Cell[][] grid = new Cell[rows][cols];
     public int Score;
@@ -57,16 +57,14 @@ public class Board {
             grid[c.getY()][c.getX()] = c;
         }
     }
-    public boolean clearFullRows() {
+    public int clearFullRows() {
         List<Integer> fullRows = getFullRows();
         for (int row : fullRows) {
             removeRow(row);
             shiftDown(row);
         }
         allClear = checkAllClear();
-        if(fullRows.size()>0)
-            return true;
-        return false;
+        return fullRows.size();
     }
     public boolean checkAllClear() {
         for (int y = 0; y < rows; y++) {
@@ -119,7 +117,7 @@ public class Board {
         }
         return true;
     }
-    private List<Integer> getFullRows() {
+    public List<Integer> getFullRows() {
         List<Integer> fullRows = new ArrayList<>();
         for (int y = 0; y < rows; y++) {
             boolean full = true;

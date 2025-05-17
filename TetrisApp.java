@@ -21,7 +21,19 @@ public class TetrisApp {
     }
 
     public void startGame() {
-        gamePanel = new TetrisGame(this, soundManager);
+        gamePanel = new TetrisGame(this, soundManager, true);
+        frame.setContentPane(gamePanel);
+        frame.revalidate();
+        gamePanel.requestFocusInWindow(); // 確保接收鍵盤
+    }
+    public void startLines40Game() {
+        gamePanel = new TimeAttackGame(this, soundManager);
+        frame.setContentPane(gamePanel);
+        frame.revalidate();
+        gamePanel.requestFocusInWindow(); // 確保接收鍵盤
+    }
+    public void startTimeChallengeGame() {
+        gamePanel = new TimeChallengeGame(this, soundManager);
         frame.setContentPane(gamePanel);
         frame.revalidate();
         gamePanel.requestFocusInWindow(); // 確保接收鍵盤

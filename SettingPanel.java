@@ -1,5 +1,7 @@
 import java.awt.*;
+import java.awt.event.*;
 import javax.swing.*;
+import javax.swing.border.*;
 
 public class SettingPanel extends JPanel {
     private JSlider bgmSlider;
@@ -13,39 +15,37 @@ public class SettingPanel extends JPanel {
         this.soundManager = sm;
         this.app = app;
         setLayout(new GridBagLayout());
+        setBackground(Color.BLACK);  // 黑色背景
+
         GridBagConstraints gbc = new GridBagConstraints();
-        //settingButton.setAlignmentX(Component.CENTER_ALIGNMENT);
-        // 背景音量
-        JLabel bgmLabel = new JLabel("BGM 音量：", SwingConstants.CENTER);
-        bgmLabel.setFont(new Font("", Font.BOLD, 24));
-        bgmSlider = new JSlider(0, 100, soundManager.getBGMVolume()); // 初始值設為 50
-        bgmSlider.setPreferredSize(new Dimension(150, 30));
-        bgmLabelValue = new JLabel("" + soundManager.getBGMVolume());
+        gbc.insets = new Insets(10, 10, 10, 10);
+
+        // BGM 音量
+        JLabel bgmLabel = createWhiteLabel("BGM:");
+        bgmSlider = new JSlider(0, 100, soundManager.getBGMVolume());
+        styleSlider(bgmSlider);
+        bgmLabelValue = createWhiteLabel(String.valueOf(soundManager.getBGMVolume()));
         bgmSlider.addChangeListener(e -> {
             soundManager.setBGMVolume(bgmSlider.getValue());
             bgmLabelValue.setText(String.valueOf(bgmSlider.getValue()));
         });
 
         // 特效音量
-        JLabel sfxLabel = new JLabel("特效音量：");
-        sfxLabel.setFont(new Font("", Font.BOLD, 24));
+        JLabel sfxLabel = createWhiteLabel("Special Voice:");
         sfxSlider = new JSlider(0, 100, soundManager.getComboVolume());
-        sfxSlider.setPreferredSize(new Dimension(150, 30));
-        sfxLabelValue = new JLabel(String.valueOf(soundManager.getComboVolume()));
+        styleSlider(sfxSlider);
+        sfxLabelValue = createWhiteLabel(String.valueOf(soundManager.getComboVolume()));
         sfxSlider.addChangeListener(e -> {
             int value = sfxSlider.getValue();
             sfxLabelValue.setText(String.valueOf(value));
-            soundManager.setComboVolume(value); // 呼叫 Piano 類的設定
-            soundManager.setSFXVolume(value,"put");
+            soundManager.setComboVolume(value);
+            soundManager.setSFXVolume(value, "put");
         });
 
-        JButton backMenu = new JButton("Back");
-        backMenu.setFont(new Font("Arial", Font.PLAIN, 24));
-        backMenu.setAlignmentX(Component.CENTER_ALIGNMENT);  // 使按鈕水平居中
-        backMenu.addActionListener(e -> app.backToMenu());
+        // 返回主選單按鈕
+        JButton backMenu = createAnimatedButton("Back", e -> app.backToMenu());
 
-        gbc.insets = new Insets(5, 5, 5, 5); // 加點間距
-        // 第 1 行：BGM 音量
+        // 加入元件：BGM
         gbc.gridy = 0;
         gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.EAST;
@@ -59,7 +59,7 @@ public class SettingPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         add(bgmLabelValue, gbc);
 
-        // 第 2 行：SFX 音量
+        // 加入元件：SFX
         gbc.gridy = 1;
         gbc.gridx = 0;
         gbc.anchor = GridBagConstraints.EAST;
@@ -73,9 +73,88 @@ public class SettingPanel extends JPanel {
         gbc.anchor = GridBagConstraints.WEST;
         add(sfxLabelValue, gbc);
 
+        // 返回按鈕
         gbc.gridy = 3;
         gbc.gridx = 0;
+        gbc.gridwidth = 3;
         gbc.anchor = GridBagConstraints.CENTER;
         add(backMenu, gbc);
+    }
+
+    private JLabel createWhiteLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Arial", Font.BOLD, 24));
+        return label;
+    }
+
+    private void styleSlider(JSlider slider) {
+        slider.setPreferredSize(new Dimension(150, 30));
+        slider.setBackground(Color.BLACK);
+        slider.setForeground(Color.WHITE);
+        slider.setPaintTicks(false);
+        slider.setPaintLabels(false);
+        slider.setOpaque(true);
+    }
+
+    private JButton createAnimatedButton(String text, ActionListener action) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Arial", Font.PLAIN, 24));
+        button.setForeground(Color.WHITE);
+        button.setContentAreaFilled(false);
+        button.setFocusPainted(false);
+        button.setOpaque(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        Border padding = BorderFactory.createEmptyBorder(10, 20, 10, 20);
+        Color borderColor = new Color(255, 255, 255, 0);
+        Border currentBorder = BorderFactory.createLineBorder(borderColor, 2);
+        button.setBorder(BorderFactory.createCompoundBorder(currentBorder, padding));
+
+        final Timer[] animationTimer = new Timer[1];
+        final int[] alpha = {0};
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (animationTimer[0] != null && animationTimer[0].isRunning()) {
+                    animationTimer[0].stop();
+                }
+                animationTimer[0] = new Timer(15, new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        alpha[0] = Math.min(alpha[0] + 15, 255);
+                        Color c = new Color(255, 255, 255, alpha[0]);
+                        Border animatedBorder = BorderFactory.createLineBorder(c, 2);
+                        button.setBorder(BorderFactory.createCompoundBorder(animatedBorder, padding));
+                        if (alpha[0] >= 255) {
+                            animationTimer[0].stop();
+                        }
+                    }
+                });
+                animationTimer[0].start();
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                if (animationTimer[0] != null && animationTimer[0].isRunning()) {
+                    animationTimer[0].stop();
+                }
+                animationTimer[0] = new Timer(15, new ActionListener() {
+                    public void actionPerformed(ActionEvent e) {
+                        alpha[0] = Math.max(alpha[0] - 15, 0);
+                        Color c = new Color(255, 255, 255, alpha[0]);
+                        Border animatedBorder = BorderFactory.createLineBorder(c, 2);
+                        button.setBorder(BorderFactory.createCompoundBorder(animatedBorder, padding));
+                        if (alpha[0] <= 0) {
+                            animationTimer[0].stop();
+                        }
+                    }
+                });
+                animationTimer[0].start();
+            }
+        });
+
+        button.addActionListener(action);
+        return button;
     }
 }
