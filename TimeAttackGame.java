@@ -5,7 +5,7 @@ import java.time.Instant;
 import javax.swing.*;
 
 public class TimeAttackGame extends TetrisGame {
-    private int linesCleared = 0;
+    // private int linesCleared = 0;
     private Instant startTime;
     private Timer gameTimer; // 用來更新畫面時間（如果你有顯示用）
     private double elapsedSeconds = 0.0;
@@ -35,17 +35,18 @@ public class TimeAttackGame extends TetrisGame {
         g.setFont(new Font("Arial", Font.BOLD, 24));
         g.drawString(String.format("Lines: " + linesCleared), xgrid + 100, 60);  // 顯示時間，精度到 0.1 秒
     }
-    private void endGame() {
+    protected void endGame() {
+        super.endGame(); // 呼叫父類的結束遊戲方法
         gameTimer.stop(); // 停止時間更新
         timer.stop();     // 停止遊戲邏輯更新（你原本就有）
 
-        Duration finalTime = Duration.between(startTime, Instant.now());
-        double seconds = finalTime.toMillis() / 1000.0;
-        JOptionPane.showMessageDialog(this,
-            "挑戰完成！總耗時: " + String.format("%.2f", seconds) + " 秒",
-            "完成 40 行！",
-            JOptionPane.INFORMATION_MESSAGE);
-        app.backToMenu();  // 回主選單
+        // Duration finalTime = Duration.between(startTime, Instant.now());
+        // double seconds = finalTime.toMillis() / 1000.0;
+        // JOptionPane.showMessageDialog(this,
+        //     "挑戰完成！總耗時: " + String.format("%.2f", seconds) + " 秒",
+        //     "完成 40 行！",
+        //     JOptionPane.INFORMATION_MESSAGE);
+        // app.backToMenu();  // 回主選單
     }
     @Override
     public void paintComponent(Graphics g) {
@@ -57,8 +58,8 @@ public class TimeAttackGame extends TetrisGame {
     }
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
-        linesCleared += clearLinesNum;
-        if (linesCleared >= 40) {
+        // linesCleared += clearLinesNum;
+        if (linesCleared >= 10) {
             endGame();
         }
     }

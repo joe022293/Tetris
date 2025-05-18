@@ -5,7 +5,7 @@ import java.time.Instant;
 import javax.swing.*;
 
 public class TimeChallengeGame extends TetrisGame {
-    private int linesCleared = 0;
+    // private int linesCleared = 0;
     private Instant startTime;
     private Timer gameTimer;
     private double elapsedSeconds = 0.0;
@@ -42,15 +42,16 @@ public class TimeChallengeGame extends TetrisGame {
         g.drawString("Lines: " + linesCleared, xgrid + 100, 60);
     }
 
-    private void endGame() {
+    protected void endGame() {
+        super.endGame(); // 呼叫父類的結束遊戲方法
         gameTimer.stop();
         timer.stop();  // 停止遊戲邏輯更新
 
-        JOptionPane.showMessageDialog(this,
-            "時間到！你總共消除了 " + linesCleared + " 行",
-            "限時 1 分鐘挑戰結束",
-            JOptionPane.INFORMATION_MESSAGE);
-        app.backToMenu();
+        // JOptionPane.showMessageDialog(this,
+        //     "時間到！你總共消除了 " + linesCleared + " 行",
+        //     "限時 1 分鐘挑戰結束",
+        //     JOptionPane.INFORMATION_MESSAGE);
+        // app.backToMenu();
     }
 
     @Override
@@ -63,7 +64,7 @@ public class TimeChallengeGame extends TetrisGame {
     @Override
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
-        linesCleared += clearLinesNum;
+        // linesCleared += clearLinesNum;
         // 不用手動觸發 endGame()，因為計時器會處理
     }
 

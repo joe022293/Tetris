@@ -51,6 +51,29 @@ public class TetrisApp {
         frame.revalidate();
     }
 
+    public void showGameOverPanel(
+        int score,
+        int linesCleared,
+        int tSpinCount,
+        int maxCombo,
+        double playTimeSeconds,
+        Runnable onRestart,
+        Runnable onBackToMenu
+    ) {
+        GameOverPanel panel = new GameOverPanel(
+            score,
+            linesCleared,
+            tSpinCount,
+            maxCombo,
+            playTimeSeconds,
+            onRestart,
+            onBackToMenu
+        );
+        frame.setContentPane(panel);
+        frame.revalidate();
+        panel.requestFocusInWindow();
+    }
+
     public static void main(String[] args) {
         new TetrisApp();
     }

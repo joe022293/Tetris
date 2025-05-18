@@ -45,6 +45,10 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
     private int countdown = 3;  // 倒數秒數
     private Timer countdownTimer;
     protected boolean isCountdown;
+    private int tSpinTotal = 0;
+    private int maxComboCount = 0;
+    private long startTimeMillis;
+    protected int linesCleared = 0;
     public TetrisGame(TetrisApp app, SoundManager s, boolean autoCountdown) {
         soundManager = s;
         this.app = app;
@@ -113,12 +117,34 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
         for (Cell c : currentBlock.getCells()) {
             if (board.isOccupied(c.getX(), c.getY())) {
                 timer.stop();
-                JOptionPane.showMessageDialog(this, "Game Over!");
-                app.backToMenu();  // 回主畫面
+                // 換成顯示 GameOverPanel
+                app.showGameOverPanel(
+                    board.Score,
+                    linesCleared,
+                    tSpinTotal,
+                    maxComboCount,
+                    (System.currentTimeMillis() - startTimeMillis) / 1000.0,
+                    () -> app.startGame(), // 重新開始
+                    () -> app.backToMenu() // 回主選單
+                    );
                 soundManager.stopBGM();
                 return;
             }
         }
+    }
+    protected void endGame() {
+        timer.stop();
+        moveTimer.stop();
+        soundManager.stopBGM();
+        app.showGameOverPanel(
+            board.Score,
+            linesCleared,
+            tSpinTotal,
+            maxComboCount,
+            (System.currentTimeMillis() - startTimeMillis) / 1000.0,
+            () -> app.startGame(), // 重新開始
+            () -> app.backToMenu() // 回主選單
+        );
     }
     private void refillBag() {
         List<Integer> newBag = new ArrayList<>();
@@ -168,6 +194,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                 triggerShake();
                 if (board.isTSpin(currentBlock) && lastIsTurn) {
                     tSpinFader.triggerFade();
+                    tSpinTotal++;
                 }
                 clearLinesNum = board.clearFullRows();
                 if(clearLinesNum>0)
@@ -177,6 +204,9 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     if(comboCount > 1){
                         combo.setString("Combo " + comboCount + " !");
                         combo.triggerFade();
+                    }
+                    if(comboCount > maxComboCount){
+                        maxComboCount = comboCount;
                     }
                 }
                 else
@@ -195,6 +225,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
             }
         }           // 產生新的方塊
         repaint();
+        linesCleared += clearLinesNum;
     }
     public void startCountdown() {
         isCountdown = true;
@@ -226,6 +257,7 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
 
     public void resumeAllTimers() {
         if (timer != null && !timer.isRunning()) timer.start();
+        startTimeMillis = System.currentTimeMillis();
         // moveTimer 只在有按鍵時才啟動，不需要強制啟動
     }
     @Override
