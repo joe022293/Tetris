@@ -59,7 +59,7 @@ public class TimeAttackGame extends TetrisGame {
     public void actionPerformed(ActionEvent e) {
         super.actionPerformed(e);
         // linesCleared += clearLinesNum;
-        if (linesCleared >= 10) {
+        if (linesCleared >= 40) {
             endGame();
         }
     }
