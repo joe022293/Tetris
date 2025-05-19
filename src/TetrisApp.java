@@ -7,8 +7,8 @@ public class TetrisApp {
     SoundManager soundManager = new SoundManager();
 
     public TetrisApp() {
-        soundManager.loadBGM("C:/github/Tetris/music/korobeiniki.wav");
-        soundManager.loadSFX("put", "C:/github/Tetris/music/tap.wav");
+        soundManager.loadBGM("music/korobeiniki.wav");
+        soundManager.loadSFX("put", "music/tap.wav");
         frame = new JFrame("Tetris Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(600, 800);
