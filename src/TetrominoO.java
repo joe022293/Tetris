@@ -13,6 +13,9 @@ public class TetrominoO extends Tetromino {
     public void rotate() {
         // 方塊不旋轉
     }
+    public void rotateBack() {
+        // 方塊不旋轉
+    }
     @Override
     public Tetromino cloneAt(int x, int y) {
         return new TetrominoO(x, y);

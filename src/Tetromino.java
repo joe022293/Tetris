@@ -10,6 +10,7 @@ public abstract class Tetromino {
     protected int startX;
     protected int startY;
     public abstract void rotate(); // 每種形狀旋轉邏輯不同
+    public abstract void rotateBack(); // 每種形狀旋轉邏輯不同
     int s = 0;
     public void moveDown() {
         for (Cell cell : cells) {

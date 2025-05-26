@@ -36,6 +36,9 @@ public class TetrominoZ extends Tetromino {
             s=0;
         }
     }
+    public void rotateBack() {
+        rotate();
+    }
     @Override
     public Tetromino cloneAt(int x, int y) {
         return new TetrominoZ(x, y);

@@ -511,7 +511,17 @@ public class TetrisGame extends JPanel implements ActionListener, KeyListener {
                     }
                     break;
                 case KeyEvent.VK_UP : 
-                    r = board.tryRotate(currentBlock);
+                    r = board.tryRotate(currentBlock, true);
+                    currentBlock.adjustPositionAfterRotate();
+                    if(r)
+                    {
+                        lockStartTime = System.currentTimeMillis() + 300;
+                        r = false;
+                        lastIsTurn = true;
+                    }
+                    break;
+                case KeyEvent.VK_Z :
+                    r = board.tryRotate(currentBlock, false);
                     currentBlock.adjustPositionAfterRotate();
                     if(r)
                     {

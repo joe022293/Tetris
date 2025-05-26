@@ -36,7 +36,9 @@ public class TetrominoI extends Tetromino {
             cells[3].setY(cells[3].getY()+2);
             s=0;
         }
-
+    }
+    public void rotateBack() {
+        rotate();
     }
     @Override
     public Tetromino cloneAt(int x, int y) {

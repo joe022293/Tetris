@@ -13,6 +13,9 @@ public class TetrominoGhost extends Tetromino {
     public void rotate() {
         // Ghost不需要旋轉邏輯
     }
+    public void rotateBack() {
+        // Ghost不需要旋轉邏輯
+    }
 
     @Override
     public Tetromino cloneAt(int x, int y) {

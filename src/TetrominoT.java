@@ -7,6 +7,7 @@ public class TetrominoT extends Tetromino {
         cells[1] = new Cell(x, y - 1, color);
         cells[2] = new Cell(x + 1, y, color);
         cells[3] = new Cell(x, y, color);
+        s=0;
     }
 
     @Override
@@ -59,6 +60,12 @@ public class TetrominoT extends Tetromino {
             cells[3].setY(cells[3].getY());
             s=0;
         }
+    }
+    @Override
+    public void rotateBack() {
+        rotate();
+        rotate();
+        rotate();
     }
     @Override
     public Tetromino cloneAt(int x, int y) {

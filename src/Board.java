@@ -77,12 +77,16 @@ public class Board {
         return true;  // 所有方格都為 null，表示達成 All Clear
     }
 
-    public boolean tryRotate(Tetromino block) {
+    public boolean tryRotate(Tetromino block, boolean clockwise) {
         // 先備份原本的位置
         List<Cell> originalCells = block.copyCells();
     
         // 嘗試旋轉
-        block.rotate();
+        if (clockwise) {
+            block.rotate();
+        } else {
+            block.rotateBack();
+        }
     
         // 模擬旋轉後的位置
         List<Cell> rotatedCells = block.copyCells();
